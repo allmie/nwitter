@@ -1,5 +1,81 @@
-import React from 'react';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from '@firebase/auth';
+import { authService } from 'fbase';
+import React, { useState } from 'react';
 
-const Auth = () => <span>Auth</span>;
+const Auth = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [newAccount, setNewAccount] = useState(true);
+  const [error, setError] = useState('');
+
+  const onChange = (event) => {
+    const {
+      target: { name, value },
+    } = event;
+
+    if (name === 'email') {
+      setEmail(value);
+    } else if (name === 'password') {
+      setPassword(value);
+    }
+  };
+  const onSubmit = async (event) => {
+    event.preventDefault();
+    let user;
+
+    try {
+      if (newAccount) {
+        user = await createUserWithEmailAndPassword(
+          authService,
+          email,
+          password
+        );
+      } else {
+        user = await signInWithEmailAndPassword(authService, email, password);
+      }
+      console.log(user);
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const toggleAccount = () => setNewAccount((prev) => !prev);
+
+  return (
+    <div>
+      <form onSubmit={onSubmit}>
+        <input
+          name='email'
+          type='email'
+          placeholder='Email'
+          value={email}
+          onChange={onChange}
+        />
+        <input
+          name='password'
+          type='password'
+          placeholder='Password'
+          value={password}
+          onChange={onChange}
+        />
+        <input
+          type='submit'
+          value={newAccount ? 'Create Account' : 'Sign In'}
+        />
+        <div onClick={toggleAccount}>
+          {newAccount ? 'Sign In' : 'Create Account'}
+        </div>
+      </form>
+      <div>
+        <button>Continue with Google</button>
+        <button>Continue with Email</button>
+      </div>
+      {error}
+    </div>
+  );
+};
 
 export default Auth;
